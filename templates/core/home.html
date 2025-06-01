@@ -1,0 +1,392 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}首页 - 学习平台{% endblock %}
+
+{% block content %}
+<!-- 在body标签中添加用户认证状态的data属性 -->
+<div id="page-data" 
+     data-authenticated="{{ user.is_authenticated|yesno:'true,false' }}"
+     data-today-visits="{{ stats.today_visits }}"
+     data-content-list-url="{% url 'content:content_list' %}"
+     data-dashboard-url="{% url 'core:dashboard' %}"
+     data-login-url="{% url 'accounts:login' %}"
+     data-data-analysis-url="{% url 'core:data_analysis' %}"
+     style="display: none;">
+</div>
+<!-- 英雄区域 -->
+<div class="hero-section bg-primary text-white py-5 mb-5 rounded" style="padding-left: 2rem; padding-right: 2rem;">
+    <div class="row align-items-center">
+        <div class="col-lg-6">
+            <h1 class="display-4 fw-bold">欢迎来到学习平台</h1>
+            <p class="lead">发现、创作、分享优质的学习内容</p>
+            {% if not user.is_authenticated %}
+            <div class="mt-4">
+                <a href="{% url 'accounts:signup' %}" class="btn btn-light btn-lg me-3">立即注册</a>
+                <a href="{% url 'accounts:login' %}" class="btn btn-light btn-lg">登录</a>
+            </div>
+            {% else %}
+            <div class="mt-4">
+                <a href="{% url 'content:content_create' %}" class="btn btn-light btn-lg me-3">创建内容</a>
+                <a href="{% url 'core:dashboard' %}" class="btn btn-light btn-lg">个人中心</a>
+            </div>
+            {% endif %}
+        </div>
+        <div class="col-lg-6 text-center">
+            <i class="fas fa-graduation-cap" style="font-size: 8rem; opacity: 0.3;"></i>
+        </div>
+    </div>
+</div>
+
+<!-- 统计信息 -->
+<div class="row mb-5">
+    <div class="col-md-3 mb-4">
+        <div class="card stats-card h-100 border-0 shadow-sm" onclick="navigateToContent()" style="cursor: pointer;">
+            <div class="card-body text-center p-4">
+                <div class="stats-icon mb-3">
+                    <i class="fas fa-file-alt fa-2x text-primary"></i>
+                </div>
+                <h3 class="text-primary mb-2 counter" data-target="{{ stats.total_contents }}">0</h3>
+                <p class="card-text text-muted mb-0">总内容数</p>
+                <small class="text-success"><i class="fas fa-arrow-up"></i> 查看所有内容</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-4">
+        <div class="card stats-card h-100 border-0 shadow-sm" onclick="navigateToUsers()" style="cursor: pointer;">
+            <div class="card-body text-center p-4">
+                <div class="stats-icon mb-3">
+                    <i class="fas fa-users fa-2x text-success"></i>
+                </div>
+                <h3 class="text-success mb-2 counter" data-target="{{ stats.total_users }}">0</h3>
+                <p class="card-text text-muted mb-0">注册用户</p>
+                <small class="text-info"><i class="fas fa-user-plus"></i> 加入我们</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-4">
+        <div class="card stats-card h-100 border-0 shadow-sm" onclick="showTodayStats()" style="cursor: pointer;">
+            <div class="card-body text-center p-4">
+                <div class="stats-icon mb-3">
+                    <i class="fas fa-eye fa-2x text-info"></i>
+                </div>
+                <h3 class="text-info mb-2 counter" data-target="{{ stats.today_visits }}">0</h3>
+                <p class="card-text text-muted mb-0">今日访问</p>
+                <small class="text-warning"><i class="fas fa-chart-line"></i> 实时统计</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-4">
+        <div class="card stats-card h-100 border-0 shadow-sm" onclick="showTotalStats()" style="cursor: pointer;">
+            <div class="card-body text-center p-4">
+                <div class="stats-icon mb-3">
+                    <i class="fas fa-chart-bar fa-2x text-warning"></i>
+                </div>
+                <h3 class="text-warning mb-2 counter" data-target="{{ stats.total_visits }}">0</h3>
+                <p class="card-text text-muted mb-0">总访问量</p>
+                <small class="text-primary"><i class="fas fa-analytics"></i> 详细分析</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 最新内容 -->
+<div class="row">
+    <div class="col-12">
+        <h2 class="mb-4">最新内容</h2>
+        {% if latest_contents %}
+        <div class="row">
+            {% for content in latest_contents %}
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="card h-100">
+                    {% if content.cover_image %}
+                    <img src="{{ content.cover_image.url }}" class="card-img-top" alt="{{ content.title }}" style="height: 200px; object-fit: cover;">
+                    {% else %}
+                    <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 200px;">
+                        <i class="fas fa-file-alt fa-3x text-muted"></i>
+                    </div>
+                    {% endif %}
+                    <div class="card-body d-flex flex-column">
+                        <h5 class="card-title">{{ content.title }}</h5>
+                        <p class="card-text flex-grow-1">{{ content.summary|default:content.content|truncatewords:20 }}</p>
+                        <div class="mt-auto">
+                            <small class="text-muted">
+                                <i class="fas fa-user"></i> {{ content.author.username }}
+                                <i class="fas fa-eye ms-2"></i> {{ content.views_count }}
+                                <i class="fas fa-heart ms-2"></i> {{ content.likes_count }}
+                            </small>
+                            <div class="mt-2">
+                                <a href="{% url 'content:content_detail' content.pk %}" class="btn btn-primary btn-sm">查看详情</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        <div class="text-center mt-4">
+            <a href="{% url 'content:content_list' %}" class="btn btn-primary">查看更多内容</a>
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+            <p class="text-muted">暂无内容，快来创建第一个内容吧！</p>
+            {% if user.is_authenticated %}
+            <a href="{% url 'content:content_create' %}" class="btn btn-primary">创建内容</a>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- 热门标签 -->
+{% if popular_tags %}
+<div class="row mt-5">
+    <div class="col-12">
+        <h2 class="mb-4">热门标签</h2>
+        <div class="d-flex flex-wrap gap-2">
+            {% for tag in popular_tags %}
+            <a href="{% url 'content:content_list' %}?tag={{ tag.id }}" class="btn btn-outline-secondary btn-sm">
+                {{ tag.name }} ({{ tag.content_count }})
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.hero-section {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 20px;
+    position: relative;
+    overflow: hidden;
+}
+
+.hero-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="50" cy="50" r="1" fill="%23ffffff" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>') repeat;
+    opacity: 0.3;
+}
+
+.hero-section .row {
+    position: relative;
+    z-index: 1;
+}
+
+.stats-card {
+    transition: all 0.3s ease;
+    background: linear-gradient(145deg, #ffffff 0%, #f8f9fa 100%);
+    border-radius: 15px;
+    position: relative;
+    overflow: hidden;
+}
+
+.stats-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+    transition: left 0.5s;
+}
+
+.stats-card:hover::before {
+    left: 100%;
+}
+
+.stats-card:hover {
+    transform: translateY(-10px) scale(1.02);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.1) !important;
+}
+
+.stats-icon {
+    transition: transform 0.3s ease;
+}
+
+.stats-card:hover .stats-icon {
+    transform: scale(1.1) rotate(5deg);
+}
+
+.counter {
+    font-weight: 700;
+    font-size: 2.5rem;
+}
+
+.card {
+    transition: all 0.3s ease;
+    border-radius: 15px;
+}
+
+.card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+}
+
+.btn {
+    border-radius: 25px;
+    padding: 12px 30px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+}
+
+.card-img-top {
+    border-radius: 15px 15px 0 0;
+    transition: transform 0.3s ease;
+}
+
+.card:hover .card-img-top {
+    transform: scale(1.05);
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.stats-card {
+    animation: fadeInUp 0.6s ease forwards;
+}
+
+.stats-card:nth-child(1) { animation-delay: 0.1s; }
+.stats-card:nth-child(2) { animation-delay: 0.2s; }
+.stats-card:nth-child(3) { animation-delay: 0.3s; }
+.stats-card:nth-child(4) { animation-delay: 0.4s; }
+
+.notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 9999;
+    min-width: 300px;
+    border-radius: 10px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// 数字动画计数器
+function animateCounters() {
+    var counters = document.querySelectorAll('.counter');
+    
+    counters.forEach(function(counter) {
+        var target = parseInt(counter.getAttribute('data-target'));
+        var current = 0;
+        var increment = target / 100;
+        
+        var timer = setInterval(function() {
+            current += increment;
+            if (current >= target) {
+                current = target;
+                clearInterval(timer);
+            }
+            counter.textContent = Math.floor(current);
+        }, 20);
+    });
+}
+
+// 获取页面数据
+const pageData = document.getElementById('page-data');
+const isAuthenticated = pageData.dataset.authenticated === 'true';
+const todayVisits = pageData.dataset.todayVisits;
+const urls = {
+    contentList: pageData.dataset.contentListUrl,
+    dashboard: pageData.dataset.dashboardUrl,
+    login: pageData.dataset.loginUrl,
+    dataAnalysis: pageData.dataset.dataAnalysisUrl
+};
+
+// 统计卡片点击事件
+function navigateToContent() {
+    showNotification('正在跳转到内容列表...', 'info');
+    setTimeout(function() {
+        window.location.href = urls.contentList;
+    }, 500);
+}
+
+function navigateToUsers() {
+    if (isAuthenticated) {
+        showNotification('查看用户统计信息...', 'info');
+        setTimeout(function() {
+            window.location.href = urls.dashboard;
+        }, 500);
+    } else {
+        showNotification('请先登录查看用户信息', 'warning');
+        setTimeout(function() {
+            window.location.href = urls.login;
+        }, 1000);
+    }
+}
+
+function showTodayStats() {
+    showNotification('今日访问统计: ' + todayVisits + ' 次访问', 'success');
+}
+
+function showTotalStats() {
+    if (isAuthenticated) {
+        showNotification('正在跳转到数据分析页面...', 'info');
+        setTimeout(function() {
+            window.location.href = urls.dataAnalysis;
+        }, 500);
+    } else {
+        showNotification('请先登录查看详细统计', 'warning');
+        setTimeout(function() {
+            window.location.href = urls.login;
+        }, 1000);
+    }
+}
+
+// 显示通知
+function showNotification(message, type) {
+    var notification = document.createElement('div');
+    notification.className = 'alert alert-' + type + ' alert-dismissible fade show notification';
+    notification.innerHTML = '<i class="fas fa-info-circle me-2"></i>' + message + 
+        '<button type="button" class="btn-close" data-bs-dismiss="alert"></button>';
+    
+    document.body.appendChild(notification);
+    
+    // 自动关闭
+    setTimeout(function() {
+        if (notification.parentNode) {
+            notification.remove();
+        }
+    }, 3000);
+}
+
+// 页面加载完成后执行
+document.addEventListener('DOMContentLoaded', function() {
+    // 延迟启动计数器动画
+    setTimeout(animateCounters, 500);
+    
+    // 添加卡片悬停音效（可选）
+    var statsCards = document.querySelectorAll('.stats-card');
+    statsCards.forEach(function(card) {
+        card.addEventListener('mouseenter', function() {
+            // 可以添加悬停音效
+        });
+    });
+});
+</script>
+{% endblock %}

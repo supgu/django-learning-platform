@@ -1,0 +1,118 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+{% load widget_tweaks %}
+
+{% block title %}登录 - 学习平台{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6 col-lg-4">
+        <div class="card shadow">
+            <div class="card-body p-4">
+                <div class="text-center mb-4">
+                    <h2 class="card-title">登录</h2>
+                    <p class="text-muted">欢迎回到学习平台</p>
+                </div>
+                
+                {% if form.errors %}
+                    <div class="alert alert-danger">
+                        {% for field, errors in form.errors.items %}
+                            {% for error in errors %}
+                                <p class="mb-0">{{ error }}</p>
+                            {% endfor %}
+                        {% endfor %}
+                    </div>
+                {% endif %}
+                
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.username.id_for_label }}" class="form-label">
+                            <i class="fas fa-user"></i> 用户名
+                        </label>
+                        {{ form.username|add_class:"form-control" }}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.password.id_for_label }}" class="form-label">
+                            <i class="fas fa-lock"></i> 密码
+                        </label>
+                        {{ form.password|add_class:"form-control" }}
+                    </div>
+                    
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" class="form-check-input" id="rememberMe" name="remember_me">
+                        <label class="form-check-label" for="rememberMe">
+                            记住我
+                        </label>
+                    </div>
+                    
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="fas fa-sign-in-alt"></i> 登录
+                        </button>
+                    </div>
+                </form>
+                
+                <hr class="my-4">
+                
+                <div class="text-center">
+                    <p class="mb-2">
+                        <a href="{% url 'accounts:password_reset' %}" class="text-decoration-none">
+                            忘记密码？
+                        </a>
+                    </p>
+                    <p class="mb-0">
+                        还没有账号？
+                        <a href="{% url 'accounts:signup' %}" class="text-decoration-none fw-bold">
+                            立即注册
+                        </a>
+                    </p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 社交登录（可选） -->
+        <div class="card mt-3">
+            <div class="card-body text-center">
+                <p class="text-muted mb-3">或使用以下方式登录</p>
+                <div class="d-grid gap-2">
+                    <button class="btn btn-outline-danger" disabled>
+                        <i class="fab fa-google"></i> Google 登录
+                    </button>
+                    <button class="btn btn-outline-primary" disabled>
+                        <i class="fab fa-github"></i> GitHub 登录
+                    </button>
+                </div>
+                <small class="text-muted">（功能开发中）</small>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.card {
+    border: none;
+    border-radius: 15px;
+}
+
+.form-control {
+    border-radius: 10px;
+    padding: 12px 15px;
+}
+
+.btn {
+    border-radius: 10px;
+    padding: 12px;
+}
+
+.form-check-input:checked {
+    background-color: #007bff;
+    border-color: #007bff;
+}
+</style>
+{% endblock %}

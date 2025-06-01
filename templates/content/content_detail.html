@@ -1,0 +1,470 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ content.title }} - 内容详情{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-lg-8">
+            <!-- 内容详情卡片 -->
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h1 class="card-title mb-0">{{ content.title }}</h1>
+                    <div class="d-flex align-items-center">
+                        {% if content.privacy == 'public' %}
+                            <span class="badge bg-success me-2">
+                                <i class="fas fa-globe"></i> 公开
+                            </span>
+                        {% else %}
+                            <span class="badge bg-warning me-2">
+                                <i class="fas fa-lock"></i> 私密
+                            </span>
+                        {% endif %}
+                        {% if user == content.author %}
+                            <a href="{% url 'content:content_update' content.pk %}" class="btn btn-sm btn-outline-secondary">
+                                <i class="fas fa-edit"></i> 编辑
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="card-body">
+                    <!-- 作者信息 -->
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="me-3">
+                            <i class="fas fa-user-circle fa-2x text-muted"></i>
+                        </div>
+                        <div>
+                            <h6 class="mb-0">{{ content.author.username }}</h6>
+                            <small class="text-muted">{{ content.created_at|date:"Y年m月d日 H:i" }}</small>
+                        </div>
+                    </div>
+                    
+                    <!-- 内容正文 -->
+                    <div class="content-body mb-4">
+                        {{ content.content|linebreaks }}
+                    </div>
+                    
+                    <!-- 标签 -->
+                    {% if content.tags.all %}
+                        <div class="mb-3">
+                            <h6>标签：</h6>
+                            {% for tag in content.tags.all %}
+                                <span class="badge bg-light text-dark me-1">
+                                    <i class="fas fa-tag"></i> {{ tag.name }}
+                                </span>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                    
+                    <!-- 统计信息 -->
+                    <div class="row text-center mb-3">
+                        <div class="col-md-3">
+                            <div class="stat-item">
+                                <i class="fas fa-eye text-primary"></i>
+                                <span class="ms-1">{{ content.views_count }} 浏览</span>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="stat-item">
+                                <i class="fas fa-thumbs-up text-success"></i>
+                                <span class="ms-1">{{ content.likes_count }} 点赞</span>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="stat-item">
+                                <i class="fas fa-heart text-danger"></i>
+                                <span class="ms-1">{{ content.favorites_count }} 收藏</span>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="stat-item">
+                                <i class="fas fa-comment text-info"></i>
+                                <span class="ms-1">{{ content.comments_count }} 评论</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 操作按钮 -->
+                    <div class="d-flex justify-content-center gap-2">
+                        <button class="btn btn-success like-btn {% if content.is_liked_by_user %}liked{% endif %}" data-content-id="{{ content.id }}">
+                            <i class="{% if content.is_liked_by_user %}fas{% else %}far{% endif %} fa-thumbs-up"></i> 
+                            <span class="like-count">{{ content.likes_count|default:0 }}</span>
+                            <span class="ms-1">点赞</span>
+                        </button>
+                        <button class="btn btn-danger" 
+                                data-content-id="{{ content.id }}"
+                                onclick="toggleFavorite(this.dataset.contentId, this)">
+                            <i class="fas fa-heart"></i> 
+                            <span id="favorite-text-{{ content.id }}">收藏</span>
+                        </button>
+                        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#shareModal">
+                            <i class="fas fa-share"></i> 分享
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 评论区域 -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h5><i class="fas fa-comments"></i> 评论 ({{ content.comments_count }})</h5>
+                </div>
+                <div class="card-body">
+                    {% if user.is_authenticated %}
+                        <!-- 评论表单 -->
+                        <form id="comment-form" method="post" action="{% url 'content:add_comment' content.id %}" class="mb-4">
+                            {% csrf_token %}
+                            <div class="mb-3">
+                                <textarea class="form-control" name="text" rows="3" placeholder="写下你的评论..." required></textarea>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-paper-plane"></i> 发表评论
+                                </button>
+                                <button type="button" id="ai-comment-btn" class="btn btn-info">
+                                    <i class="fas fa-robot"></i> AI智能点评
+                                    <small class="text-muted d-block">由DeepSeek AI提供</small>
+                                </button>
+                            </div>
+                        </form>
+                    {% else %}
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle"></i> 
+                            请 <a href="{% url 'accounts:login' %}">登录</a> 后发表评论
+                        </div>
+                    {% endif %}
+                    
+                    <!-- 评论列表 -->
+                    <div class="comments-list">
+                        {% if content.comments.all %}
+                            {% for comment in content.comments.all %}
+                                <div class="comment-item border-bottom pb-3 mb-3" data-comment-id="{{ comment.id }}">
+                                    <div class="d-flex align-items-start">
+                                        <div class="avatar-sm me-3">
+                                            {% if comment.author.userprofile.avatar %}
+                                                <img src="{{ comment.author.userprofile.avatar.url }}" alt="{{ comment.author.username }}" class="rounded-circle" width="40" height="40">
+                                            {% else %}
+                                                <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                                    {{ comment.author.username|first|upper }}
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                        <div class="flex-grow-1">
+                                            <div class="d-flex align-items-center mb-1">
+                                                <strong class="me-2">{{ comment.author.username }}</strong>
+                                                {% if comment.author.username == 'AI助手' %}
+                                                    <span class="badge bg-info text-white me-2">
+                                                        <i class="fas fa-robot"></i> AI评论
+                                                    </span>
+                                                    <small class="text-muted">由DeepSeek AI生成</small>
+                                                {% else %}
+                                                    <small class="text-muted">{{ comment.created_at|date:"Y-m-d H:i" }}</small>
+                                                {% endif %}
+                                            </div>
+                                            <p class="mb-0">{{ comment.text }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="text-muted text-center py-4">
+                                <i class="fas fa-comment-slash fa-2x"></i>
+                                <p class="mt-2">暂无评论，快来抢沙发吧！</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 侧边栏 -->
+        <div class="col-lg-4">
+            <!-- 作者信息卡片 -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h6><i class="fas fa-user"></i> 作者信息</h6>
+                </div>
+                <div class="card-body text-center">
+                    <i class="fas fa-user-circle fa-4x text-muted mb-3"></i>
+                    <h6>{{ content.author.username }}</h6>
+                    <p class="text-muted small">注册时间：{{ content.author.date_joined|date:"Y年m月d日" }}</p>
+                    <a href="{% url 'content:user_profile' content.author.username %}" class="btn btn-sm btn-outline-primary">
+                        <i class="fas fa-eye"></i> 查看主页
+                    </a>
+                </div>
+            </div>
+            
+            <!-- 相关内容 -->
+            <div class="card">
+                <div class="card-header">
+                    <h6><i class="fas fa-list"></i> 相关内容</h6>
+                </div>
+                <div class="card-body">
+                    <div class="text-muted text-center py-3">
+                        <i class="fas fa-search fa-2x"></i>
+                        <p class="mt-2 small">暂无相关内容</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 分享模态框 -->
+<div class="modal fade" id="shareModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-share"></i> 分享内容</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label">分享链接：</label>
+                    <div class="input-group">
+                        <input type="text" class="form-control" value="{{ request.build_absolute_uri }}" readonly>
+                        <button class="btn btn-outline-secondary" type="button" onclick="copyToClipboard(this)">
+                            <i class="fas fa-copy"></i> 复制
+                        </button>
+                    </div>
+                </div>
+                <div class="d-flex justify-content-center gap-2">
+                    <a href="#" class="btn btn-outline-primary">
+                        <i class="fab fa-weibo"></i> 微博
+                    </a>
+                    <a href="#" class="btn btn-outline-success">
+                        <i class="fab fa-weixin"></i> 微信
+                    </a>
+                    <a href="#" class="btn btn-outline-info">
+                        <i class="fab fa-qq"></i> QQ
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// 收藏功能
+function toggleFavorite(contentId, button) {
+    fetch(`/content/${contentId}/toggle-favorite/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+            'Content-Type': 'application/json',
+        },
+        credentials: 'same-origin'
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // 更新UI
+            var icon = button.querySelector('i');
+            var text = button.querySelector('span');
+            
+            if (data.favorited) {
+                button.classList.add('favorited', 'btn-danger');
+                button.classList.remove('btn-outline-danger');
+                icon.classList.remove('far');
+                icon.classList.add('fas');
+                text.textContent = '已收藏';
+            } else {
+                button.classList.remove('favorited', 'btn-danger');
+                button.classList.add('btn-outline-danger');
+                icon.classList.remove('fas');
+                icon.classList.add('far');
+                text.textContent = '收藏';
+            }
+            
+            // 更新收藏数量
+            const favoriteCount = document.querySelector('.favorite-count');
+            if (favoriteCount) {
+                favoriteCount.textContent = data.favorites_count;
+            }
+        } else {
+            alert('操作失败，请重试');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('网络错误，请重试');
+    });
+}
+
+// 收藏功能事件监听
+document.addEventListener('DOMContentLoaded', function() {
+    // 评论表单提交
+    const commentForm = document.getElementById('comment-form');
+    if (commentForm) {
+        commentForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            const submitBtn = this.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+            
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 发表中...';
+            submitBtn.disabled = true;
+            
+            fetch(this.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // 添加新评论到列表
+                    addCommentToList(data.comment);
+                    // 清空表单
+                    this.querySelector('textarea').value = '';
+                    showNotification('评论发表成功！', 'success');
+                } else {
+                    showNotification(data.error || '评论发表失败', 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showNotification('评论发表失败，请重试', 'error');
+            })
+            .finally(() => {
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+            });
+        });
+    }
+    
+    // AI评论功能
+    const aiCommentBtn = document.getElementById('ai-comment-btn');
+    if (aiCommentBtn) {
+        aiCommentBtn.addEventListener('click', function() {
+            const originalText = this.innerHTML;
+            this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> AI思考中...';
+            this.disabled = true;
+            
+            fetch(`{% url 'content:ai_comment' content.id %}`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                 if (data.success) {
+                     // 使用服务器返回的评论数据
+                     const aiComment = data.comment_data || {
+                         id: 'ai-' + Date.now(),
+                         text: data.comment,
+                         author: 'AI助手',
+                         created_at: new Date().toLocaleString('zh-CN'),
+                         is_ai: true
+                     };
+                     addCommentToList(aiComment);
+                     showNotification('AI评论生成成功！由DeepSeek AI提供智能分析', 'success');
+                     
+                     // 刷新页面以显示完整的评论列表
+                     setTimeout(() => {
+                         location.reload();
+                     }, 1500);
+                 } else {
+                     showNotification(data.error || 'AI评论生成失败', 'error');
+                 }
+             })
+            .catch(error => {
+                console.error('Error:', error);
+                showNotification('AI评论生成失败，请重试', 'error');
+            })
+            .finally(() => {
+                this.innerHTML = originalText;
+                this.disabled = false;
+            });
+        });
+    }
+});
+
+// 添加评论到列表
+function addCommentToList(comment) {
+    const commentsList = document.querySelector('.comments-list');
+    const noCommentsMsg = commentsList.querySelector('.text-muted.text-center');
+    
+    // 如果存在"暂无评论"消息，移除它
+    if (noCommentsMsg) {
+        noCommentsMsg.remove();
+    }
+    
+    const commentHtml = `
+        <div class="comment-item border-bottom pb-3 mb-3" data-comment-id="${comment.id}">
+            <div class="d-flex align-items-start">
+                <div class="avatar-sm me-3">
+                    <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                        ${comment.author.charAt(0).toUpperCase()}
+                    </div>
+                </div>
+                <div class="flex-grow-1">
+                    <div class="d-flex align-items-center mb-1">
+                        <strong class="me-2">${comment.author}</strong>
+                        ${comment.is_ai ? `
+                            <span class="badge bg-info text-white me-2">
+                                <i class="fas fa-robot"></i> AI评论
+                            </span>
+                            <small class="text-muted">由DeepSeek AI生成</small>
+                        ` : `
+                            <small class="text-muted">${comment.created_at}</small>
+                        `}
+                    </div>
+                    <p class="mb-0">${comment.text}</p>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    commentsList.insertAdjacentHTML('afterbegin', commentHtml);
+}
+
+function fallbackCopyTextToClipboard(text) {
+    var textArea = document.createElement('textarea');
+    textArea.value = text;
+    textArea.style.position = 'fixed';
+    textArea.style.left = '-999999px';
+    textArea.style.top = '-999999px';
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+    
+    try {
+        var successful = document.execCommand('copy');
+        if (successful) {
+            showNotification('链接已复制到剪贴板', 'success');
+        } else {
+            showNotification('复制失败，请手动复制', 'error');
+        }
+    } catch (err) {
+        showNotification('复制失败，请手动复制', 'error');
+    }
+    
+    document.body.removeChild(textArea);
+}
+
+// 复制链接
+function copyToClipboard(button) {
+    var input = button.parentElement.querySelector('input');
+    input.select();
+    document.execCommand('copy');
+    
+    var originalText = button.innerHTML;
+    button.innerHTML = '<i class="fas fa-check"></i> 已复制';
+    button.classList.remove('btn-outline-secondary');
+    button.classList.add('btn-success');
+    
+    setTimeout(function() {
+        button.innerHTML = originalText;
+        button.classList.remove('btn-success');
+        button.classList.add('btn-outline-secondary');
+    }, 2000);
+}
+</script>
+{% endblock %}

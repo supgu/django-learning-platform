@@ -1,0 +1,262 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+{% load widget_tweaks %}
+
+{% block title %}注册 - 学习平台{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+        <div class="card shadow">
+            <div class="card-body p-4">
+                <div class="text-center mb-4">
+                    <h2 class="card-title">注册账号</h2>
+                    <p class="text-muted">加入我们的学习社区</p>
+                </div>
+                
+                {% if form.errors %}
+                    <div class="alert alert-danger">
+                        {% for field, errors in form.errors.items %}
+                            {% for error in errors %}
+                                <p class="mb-0"><strong>{{ field }}:</strong> {{ error }}</p>
+                            {% endfor %}
+                        {% endfor %}
+                    </div>
+                {% endif %}
+                
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.first_name.id_for_label }}" class="form-label">
+                                <i class="fas fa-user"></i> 姓
+                            </label>
+                            {{ form.first_name|add_class:"form-control" }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.last_name.id_for_label }}" class="form-label">
+                                <i class="fas fa-user"></i> 名
+                            </label>
+                            {{ form.last_name|add_class:"form-control" }}
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.username.id_for_label }}" class="form-label">
+                            <i class="fas fa-at"></i> 用户名
+                        </label>
+                        {{ form.username|add_class:"form-control" }}
+                        <div class="form-text">用户名只能包含字母、数字和下划线</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.email.id_for_label }}" class="form-label">
+                            <i class="fas fa-envelope"></i> 邮箱地址
+                        </label>
+                        {{ form.email|add_class:"form-control" }}
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.password1.id_for_label }}" class="form-label">
+                                <i class="fas fa-lock"></i> 密码
+                            </label>
+                            {{ form.password1|add_class:"form-control" }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.password2.id_for_label }}" class="form-label">
+                                <i class="fas fa-lock"></i> 确认密码
+                            </label>
+                            {{ form.password2|add_class:"form-control" }}
+                        </div>
+                    </div>
+                    
+                    <!-- 密码强度指示器 -->
+                    <div class="mb-3">
+                        <div class="password-strength">
+                            <div class="strength-meter">
+                                <div class="strength-meter-fill" id="strength-meter"></div>
+                            </div>
+                            <small class="form-text text-muted" id="strength-text">密码强度：弱</small>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" class="form-check-input" id="agreeTerms" required>
+                        <label class="form-check-label" for="agreeTerms">
+                            我同意 <a href="#" class="text-decoration-none">服务条款</a> 和 <a href="#" class="text-decoration-none">隐私政策</a>
+                        </label>
+                    </div>
+                    
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" class="form-check-input" id="newsletter">
+                        <label class="form-check-label" for="newsletter">
+                            订阅我们的新闻通讯
+                        </label>
+                    </div>
+                    
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="fas fa-user-plus"></i> 创建账号
+                        </button>
+                    </div>
+                </form>
+                
+                <hr class="my-4">
+                
+                <div class="text-center">
+                    <p class="mb-0">
+                        已有账号？
+                        <a href="{% url 'accounts:login' %}" class="text-decoration-none fw-bold">
+                            立即登录
+                        </a>
+                    </p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 注册优势 -->
+        <div class="card mt-3">
+            <div class="card-body">
+                <h5 class="card-title text-center mb-3">加入我们，您将获得</h5>
+                <div class="row text-center">
+                    <div class="col-md-4 mb-2">
+                        <i class="fas fa-book-open text-primary fa-2x mb-2"></i>
+                        <p class="small mb-0">丰富的学习资源</p>
+                    </div>
+                    <div class="col-md-4 mb-2">
+                        <i class="fas fa-users text-success fa-2x mb-2"></i>
+                        <p class="small mb-0">活跃的学习社区</p>
+                    </div>
+                    <div class="col-md-4 mb-2">
+                        <i class="fas fa-chart-line text-info fa-2x mb-2"></i>
+                        <p class="small mb-0">个性化学习推荐</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.card {
+    border: none;
+    border-radius: 15px;
+}
+
+.form-control {
+    border-radius: 10px;
+    padding: 12px 15px;
+}
+
+.btn {
+    border-radius: 10px;
+    padding: 12px;
+}
+
+.password-strength {
+    margin-top: 5px;
+}
+
+.strength-meter {
+    height: 4px;
+    background-color: #e9ecef;
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.strength-meter-fill {
+    height: 100%;
+    width: 0%;
+    transition: all 0.3s ease;
+    border-radius: 2px;
+}
+
+.strength-weak {
+    background-color: #dc3545;
+    width: 25%;
+}
+
+.strength-fair {
+    background-color: #fd7e14;
+    width: 50%;
+}
+
+.strength-good {
+    background-color: #ffc107;
+    width: 75%;
+}
+
+.strength-strong {
+    background-color: #28a745;
+    width: 100%;
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// 密码强度检测
+document.addEventListener('DOMContentLoaded', function() {
+    var passwordInput = document.getElementById('{{ form.password1.id_for_label }}');
+    var strengthMeter = document.getElementById('strength-meter');
+    var strengthText = document.getElementById('strength-text');
+    
+    if (passwordInput) {
+        passwordInput.addEventListener('input', function() {
+            var password = this.value;
+            var strength = calculatePasswordStrength(password);
+            updateStrengthMeter(strength);
+        });
+    }
+    
+    function calculatePasswordStrength(password) {
+        var score = 0;
+        
+        // 长度检查
+        if (password.length >= 8) score += 1;
+        if (password.length >= 12) score += 1;
+        
+        // 字符类型检查
+        if (/[a-z]/.test(password)) score += 1;
+        if (/[A-Z]/.test(password)) score += 1;
+        if (/[0-9]/.test(password)) score += 1;
+        if (/[^A-Za-z0-9]/.test(password)) score += 1;
+        
+        return Math.min(score, 4);
+    }
+    
+    function updateStrengthMeter(strength) {
+        strengthMeter.className = 'strength-meter-fill';
+        
+        switch(strength) {
+            case 0:
+            case 1:
+                strengthMeter.classList.add('strength-weak');
+                strengthText.textContent = '密码强度：弱';
+                strengthText.className = 'form-text text-danger';
+                break;
+            case 2:
+                strengthMeter.classList.add('strength-fair');
+                strengthText.textContent = '密码强度：一般';
+                strengthText.className = 'form-text text-warning';
+                break;
+            case 3:
+                strengthMeter.classList.add('strength-good');
+                strengthText.textContent = '密码强度：良好';
+                strengthText.className = 'form-text text-info';
+                break;
+            case 4:
+                strengthMeter.classList.add('strength-strong');
+                strengthText.textContent = '密码强度：强';
+                strengthText.className = 'form-text text-success';
+                break;
+        }
+    }
+});
+</script>
+{% endblock %}

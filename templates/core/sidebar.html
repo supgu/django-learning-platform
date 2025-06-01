@@ -1,0 +1,46 @@
+<!-- 统一侧边栏组件 -->
+<div class="col-md-3 col-lg-2 sidebar">
+    <div class="card">
+        <div class="card-body text-center">
+            <div class="user-avatar mb-3">
+                {% if user.userprofile.avatar %}
+                    <img src="{{ user.userprofile.avatar.url }}" alt="头像" class="rounded-circle" style="width: 80px; height: 80px; object-fit: cover;">
+                {% else %}
+                    <i class="fas fa-user-circle fa-4x text-primary"></i>
+                {% endif %}
+            </div>
+            <h5 class="card-title">{{ user.get_full_name|default:user.username }}</h5>
+            <p class="card-text text-muted">{{ user.email }}</p>
+        </div>
+    </div>
+    
+    <div class="nav flex-column nav-pills mt-3">
+        <a class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}" href="{% url 'core:dashboard' %}">
+            <i class="fas fa-tachometer-alt"></i> 概览
+        </a>
+        <a class="nav-link {% if request.resolver_match.url_name == 'my_content' %}active{% endif %}" href="{% url 'core:my_content' %}">
+            <i class="fas fa-file-alt"></i> 我的内容
+        </a>
+        <a class="nav-link {% if request.resolver_match.url_name == 'my_favorites' %}active{% endif %}" href="{% url 'core:my_favorites' %}">
+            <i class="fas fa-heart"></i> 我的收藏
+        </a>
+        <a class="nav-link {% if request.resolver_match.url_name == 'profile' %}active{% endif %}" href="{% url 'accounts:profile' %}">
+            <i class="fas fa-user-edit"></i> 编辑资料
+        </a>
+        <a class="nav-link {% if request.resolver_match.url_name == 'data_analysis' %}active{% endif %}" href="{% url 'core:data_analysis' %}">
+            <i class="fas fa-chart-bar"></i> 数据分析
+        </a>
+        <a class="nav-link {% if request.resolver_match.url_name == 'account_settings' %}active{% endif %}" href="{% url 'core:account_settings' %}">
+            <i class="fas fa-cog"></i> 账号设置
+        </a>
+    </div>
+    
+    <!-- 编辑资料按钮（仅在profile页面显示） -->
+    {% if request.resolver_match.url_name == 'profile' %}
+    <div class="mt-3">
+        <button type="button" class="btn btn-primary btn-sm w-100" data-bs-toggle="modal" data-bs-target="#editProfileModal">
+            <i class="fas fa-edit me-1"></i>编辑资料
+        </button>
+    </div>
+    {% endif %}
+</div>

@@ -1,0 +1,188 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load widget_tweaks %}
+
+{% block title %}个人资料 - 学习平台{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <!-- 侧边栏 -->
+        {% include 'core/sidebar.html' %}
+        
+        <!-- 主要内容区域 -->
+        <div class="col-md-9">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="mb-0">个人资料</h4>
+                </div>
+                <div class="card-body">
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="first_name" class="form-label">姓</label>
+                                    <input type="text" class="form-control" id="first_name" name="first_name" 
+                                           value="{{ user.first_name }}" placeholder="请输入姓氏">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="last_name" class="form-label">名</label>
+                                    <input type="text" class="form-control" id="last_name" name="last_name" 
+                                           value="{{ user.last_name }}" placeholder="请输入名字">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="username" class="form-label">用户名</label>
+                            <input type="text" class="form-control" id="username" name="username" 
+                                   value="{{ user.username }}" placeholder="用户名只能包含字母、数字和下划线">
+                            <div class="form-text">用户名只能包含字母、数字和下划线</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="email" class="form-label">邮箱地址</label>
+                            <input type="email" class="form-control" id="email" name="email" 
+                                   value="{{ user.email }}" placeholder="请输入邮箱地址">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="bio" class="form-label">个人简介</label>
+                            <textarea class="form-control" id="bio" name="bio" rows="4" 
+                                      placeholder="介绍一下自己...">{{ user_profile.bio|default:'' }}</textarea>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="location" class="form-label">所在地</label>
+                            <input type="text" class="form-control" id="location" name="location" 
+                                   value="{{ user_profile.location|default:'' }}" placeholder="请输入所在地">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="website" class="form-label">个人网站</label>
+                            <input type="url" class="form-control" id="website" name="website" 
+                                   value="{{ user_profile.website|default:'' }}" placeholder="https://">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="avatar" class="form-label">头像</label>
+                            <input type="file" class="form-control" id="avatar" name="avatar" accept="image/*">
+                            <div class="form-text">支持 JPG、PNG、GIF 格式，文件大小不超过 5MB</div>
+                            {% if user_profile.avatar %}
+                                <div class="mt-2">
+                                    <small class="text-muted">当前头像：</small>
+                                    <img src="{{ user_profile.avatar.url }}" alt="当前头像" class="rounded" width="50" height="50">
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="d-flex justify-content-between">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-2"></i>保存更改
+                            </button>
+                            <a href="{% url 'core:dashboard' %}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>返回
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- 统计信息 -->
+            <div class="row mt-4">
+                <div class="col-md-4">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <h5 class="card-title text-primary">0</h5>
+                            <p class="card-text">发布内容</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <h5 class="card-title text-success">0</h5>
+                            <p class="card-text">获得点赞</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <h5 class="card-title text-info">0</h5>
+                            <p class="card-text">收藏内容</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 编辑资料模态框 -->
+<div class="modal fade" id="editProfileModal" tabindex="-1" aria-labelledby="editProfileModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editProfileModalLabel">编辑资料</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="post" enctype="multipart/form-data">
+                <div class="modal-body">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="first_name" class="form-label">姓</label>
+                        <input type="text" class="form-control" id="first_name" name="first_name" value="{{ user.first_name }}">
+                    </div>
+                    <div class="mb-3">
+                        <label for="last_name" class="form-label">名</label>
+                        <input type="text" class="form-control" id="last_name" name="last_name" value="{{ user.last_name }}">
+                    </div>
+                    <div class="mb-3">
+                        <label for="username" class="form-label">用户名</label>
+                        <input type="text" class="form-control" id="username" name="username" value="{{ user.username }}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="email" class="form-label">邮箱</label>
+                        <input type="email" class="form-control" id="email" name="email" value="{{ user.email }}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="bio" class="form-label">个人简介</label>
+                        <textarea class="form-control" id="bio" name="bio" rows="3">{{ user_profile.bio }}</textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="location" class="form-label">所在地</label>
+                        <input type="text" class="form-control" id="location" name="location" value="{{ user_profile.location }}">
+                    </div>
+                    <div class="mb-3">
+                        <label for="website" class="form-label">个人网站</label>
+                        <input type="url" class="form-control" id="website" name="website" value="{{ user_profile.website }}">
+                    </div>
+                    <div class="mb-3">
+                        <label for="avatar" class="form-label">头像</label>
+                        <input type="file" class="form-control" id="avatar" name="avatar" accept="image/*">
+                        {% if user_profile.avatar %}
+                            <small class="text-muted">当前头像：{{ user_profile.avatar.name }}</small>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="submit" class="btn btn-primary">保存更改</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

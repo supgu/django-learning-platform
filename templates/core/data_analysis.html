@@ -1,0 +1,272 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}数据分析 - 学习平台{% endblock %}
+
+{% block extra_css %}{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <!-- 侧边栏 -->
+        {% include 'core/sidebar.html' %}
+        
+        <!-- 主内容区域 -->
+        <div class="col-md-9 col-lg-10 main-content">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2><i class="fas fa-chart-bar me-2 text-info"></i>数据分析</h2>
+            </div>
+            
+            <!-- 统计卡片 -->
+            <div class="row mb-4">
+                <div class="col-md-3 mb-3">
+                    <div class="card bg-primary text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h4 class="card-title">{{ total_contents }}</h4>
+                                    <p class="card-text">总内容数</p>
+                                </div>
+                                <div class="align-self-center">
+                                    <i class="fas fa-file-alt fa-2x"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div class="card bg-success text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h4 class="card-title">{{ total_views }}</h4>
+                                    <p class="card-text">总浏览量</p>
+                                </div>
+                                <div class="align-self-center">
+                                    <i class="fas fa-eye fa-2x"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div class="card bg-warning text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h4 class="card-title">{{ total_likes }}</h4>
+                                    <p class="card-text">总点赞数</p>
+                                </div>
+                                <div class="align-self-center">
+                                    <i class="fas fa-thumbs-up fa-2x"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div class="card bg-danger text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h4 class="card-title">{{ total_favorites }}</h4>
+                                    <p class="card-text">总收藏数</p>
+                                </div>
+                                <div class="align-self-center">
+                                    <i class="fas fa-heart fa-2x"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 图表区域 -->
+            <div class="row mb-4">
+                <div class="col-md-8">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">
+                                <i class="fas fa-chart-line me-2"></i>最近30天内容发布趋势
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="trendChart" width="400" height="200"></canvas>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">
+                                <i class="fas fa-chart-pie me-2"></i>内容隐私分布
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="privacyChart" width="200" height="200"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 最受欢迎的内容 -->
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">
+                                <i class="fas fa-star me-2"></i>最受欢迎的内容
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            {% if popular_contents %}
+                                <div class="table-responsive">
+                                    <table class="table table-hover">
+                                        <thead>
+                                            <tr>
+                                                <th>标题</th>
+                                                <th>浏览量</th>
+                                                <th>点赞数</th>
+                                                <th>收藏数</th>
+                                                <th>综合评分</th>
+                                                <th>发布时间</th>
+                                                <th>操作</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for content in popular_contents %}
+                                                <tr>
+                                                    <td>
+                                                        <a href="{% url 'content:content_detail' content.id %}" class="text-decoration-none">
+                                                            {{ content.title|truncatechars:40 }}
+                                                        </a>
+                                                    </td>
+                                                    <td>
+                                                        <span class="badge bg-light text-dark">
+                                                            <i class="fas fa-eye"></i> {{ content.views_count }}
+                                                        </span>
+                                                    </td>
+                                                    <td>
+                                                        <span class="badge bg-light text-dark">
+                                                            <i class="fas fa-thumbs-up"></i> {{ content.likes_count }}
+                                                        </span>
+                                                    </td>
+                                                    <td>
+                                                        <span class="badge bg-light text-dark">
+                                                            <i class="fas fa-heart"></i> {{ content.favorites_count }}
+                                                        </span>
+                                                    </td>
+                                                    <td>
+                                                        <span class="badge bg-primary">
+                                                            {{ content.total_score }}
+                                                        </span>
+                                                    </td>
+                                                    <td>
+                                                        <small class="text-muted">{{ content.created_at|date:"Y-m-d" }}</small>
+                                                    </td>
+                                                    <td>
+                                                        <a href="{% url 'content:content_detail' content.id %}" class="btn btn-sm btn-outline-primary">
+                                                            <i class="fas fa-eye"></i>
+                                                        </a>
+                                                    </td>
+                                                </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            {% else %}
+                                <div class="text-center py-4">
+                                    <i class="fas fa-chart-bar fa-3x text-muted mb-3"></i>
+                                    <h5 class="text-muted">暂无数据</h5>
+                                    <p class="text-muted">创建更多内容来查看分析数据</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 图表数据 -->
+<div id="chart-data" 
+     data-trend-data="{{ trend_data|safe|default:'[]' }}"
+     data-privacy-stats="{{ privacy_stats|safe|default:'[]' }}"
+     style="display: none;">
+</div>
+
+<script>
+// 等待DOM加载完成
+document.addEventListener('DOMContentLoaded', function() {
+    // 获取图表数据
+    const chartData = document.getElementById('chart-data');
+    const trendData = JSON.parse(chartData.dataset.trendData || '[]');
+    const privacyStats = JSON.parse(chartData.dataset.privacyStats || '[]');
+    
+    // 趋势图表
+    var trendCtx = document.getElementById('trendChart');
+    if (trendCtx) {
+        var trendChart = new Chart(trendCtx.getContext('2d'), {
+            type: 'line',
+            data: {
+                labels: trendData.map(function(item) { return item.date; }),
+                datasets: [{
+                    label: '发布内容数',
+                    data: trendData.map(function(item) { return item.contents; }),
+                    borderColor: 'rgb(75, 192, 192)',
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                    tension: 0.1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            stepSize: 1
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // 隐私分布饼图
+    var privacyCtx = document.getElementById('privacyChart');
+    if (privacyCtx) {
+        var privacyChart = new Chart(privacyCtx.getContext('2d'), {
+            type: 'doughnut',
+            data: {
+                labels: privacyStats.map(function(item) { return item.privacy === 'public' ? '公开' : '私密'; }),
+                datasets: [{
+                    data: privacyStats.map(function(item) { return item.count; }),
+                    backgroundColor: [
+                        'rgba(54, 162, 235, 0.8)',
+                        'rgba(255, 99, 132, 0.8)'
+                    ],
+                    borderColor: [
+                        'rgba(54, 162, 235, 1)',
+                        'rgba(255, 99, 132, 1)'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
+                }
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,211 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+{% load widget_tweaks %}
+
+{% block title %}{% if object %}编辑内容{% else %}创建内容{% endif %} - 学习平台{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-{% if object %}edit{% else %}plus{% endif %} me-2"></i>
+                        {% if object %}编辑内容{% else %}创建新内容{% endif %}
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <form method="post" enctype="multipart/form-data" id="content-form">
+                        {% csrf_token %}
+                        
+                        <!-- 标题 -->
+                        <div class="mb-3">
+                            <label for="{{ form.title.id_for_label }}" class="form-label">
+                                <i class="fas fa-heading me-2"></i>标题 <span class="text-danger">*</span>
+                            </label>
+                            {{ form.title|add_class:"form-control" }}
+                            {% if form.title.errors %}
+                                <div class="text-danger mt-1">
+                                    {% for error in form.title.errors %}
+                                        <small>{{ error }}</small>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- 内容 -->
+                        <div class="mb-3">
+                            <label for="{{ form.content.id_for_label }}" class="form-label">
+                                <i class="fas fa-file-alt me-2"></i>内容 <span class="text-danger">*</span>
+                            </label>
+                            {{ form.content|add_class:"form-control" }}
+                            {% if form.content.errors %}
+                                <div class="text-danger mt-1">
+                                    {% for error in form.content.errors %}
+                                        <small>{{ error }}</small>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- 摘要 -->
+                        <div class="mb-3">
+                            <label for="{{ form.summary.id_for_label }}" class="form-label">
+                                <i class="fas fa-align-left me-2"></i>摘要
+                            </label>
+                            {{ form.summary|add_class:"form-control" }}
+                            <div class="form-text">简要描述你的创意内容（可选）</div>
+                            {% if form.summary.errors %}
+                                <div class="text-danger mt-1">
+                                    {% for error in form.summary.errors %}
+                                        <small>{{ error }}</small>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="row">
+                            <!-- 隐私设置 -->
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.privacy.id_for_label }}" class="form-label">
+                                        <i class="fas fa-lock me-2"></i>隐私设置
+                                    </label>
+                                    {{ form.privacy|add_class:"form-select" }}
+                                    {% if form.privacy.errors %}
+                                        <div class="text-danger mt-1">
+                                            {% for error in form.privacy.errors %}
+                                                <small>{{ error }}</small>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <!-- 封面图片 -->
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.cover_image.id_for_label }}" class="form-label">
+                                        <i class="fas fa-image me-2"></i>封面图片
+                                    </label>
+                                    {{ form.cover_image|add_class:"form-control" }}
+                                    {% if object.cover_image %}
+                                        <div class="mt-2">
+                                            <img src="{{ object.cover_image.url }}" alt="当前封面" class="img-thumbnail" style="max-width: 200px;">
+                                        </div>
+                                    {% endif %}
+                                    {% if form.cover_image.errors %}
+                                        <div class="text-danger mt-1">
+                                            {% for error in form.cover_image.errors %}
+                                                <small>{{ error }}</small>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 标签 -->
+                        <div class="mb-4">
+                            <label for="{{ form.tags_input.id_for_label }}" class="form-label">
+                                <i class="fas fa-tags me-2"></i>标签
+                            </label>
+                            {{ form.tags_input|add_class:"form-control" }}
+                            <div class="form-text">{{ form.tags_input.help_text }}</div>
+                            {% if form.tags_input.errors %}
+                                <div class="text-danger mt-1">
+                                    {% for error in form.tags_input.errors %}
+                                        <small>{{ error }}</small>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- 提交按钮 -->
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <button type="submit" class="btn btn-primary btn-lg me-3">
+                                    <i class="fas fa-{% if object %}save{% else %}paper-plane{% endif %} me-2"></i>
+                                    {% if object %}保存更改{% else %}发布创意{% endif %}
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary" onclick="saveDraft()">
+                                    <i class="fas fa-save me-2"></i>保存草稿
+                                </button>
+                            </div>
+                            <a href="{% url 'content:content_list' %}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>返回列表
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- 创作提示 -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h6 class="mb-0"><i class="fas fa-lightbulb me-2"></i>创作提示</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <h6><i class="fas fa-star text-warning me-2"></i>优质内容</h6>
+                            <ul class="list-unstyled small text-muted">
+                                <li>• 标题简洁明了</li>
+                                <li>• 内容结构清晰</li>
+                                <li>• 配图美观相关</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-4">
+                            <h6><i class="fas fa-tags text-info me-2"></i>标签建议</h6>
+                            <ul class="list-unstyled small text-muted">
+                                <li>• 使用相关关键词</li>
+                                <li>• 3-5个标签最佳</li>
+                                <li>• 便于他人发现</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-4">
+                            <h6><i class="fas fa-shield-alt text-success me-2"></i>隐私保护</h6>
+                            <ul class="list-unstyled small text-muted">
+                                <li>• 公开：所有人可见</li>
+                                <li>• 私有：仅自己可见</li>
+                                <li>• 可随时修改设置</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function saveDraft() {
+    // 保存草稿功能
+    const form = document.getElementById('content-form');
+    const formData = new FormData(form);
+    formData.append('is_draft', 'true');
+    
+    fetch(form.action, {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('草稿已保存');
+        } else {
+            alert('保存失败，请重试');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('保存失败，请重试');
+    });
+}
+</script>
+{% endblock %}
