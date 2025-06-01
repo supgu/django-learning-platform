@@ -26,8 +26,8 @@
                 <a href="{% url 'accounts:login' %}" class="btn btn-light btn-lg">登录</a>
             </div>
             {% else %}
-            <div class="mt-4">
-                <a href="{% url 'content:content_create' %}" class="btn btn-light btn-lg me-3">创建内容</a>
+            <div class="mt-4 button-group-vertical">
+                <a href="{% url 'content:content_create' %}" class="btn btn-light btn-lg">创建内容</a>
                 <a href="{% url 'core:dashboard' %}" class="btn btn-light btn-lg">个人中心</a>
             </div>
             {% endif %}
@@ -102,7 +102,7 @@
                     {% if content.cover_image %}
                     <img src="{{ content.cover_image.url }}" class="card-img-top" alt="{{ content.title }}" style="height: 200px; object-fit: cover;">
                     {% else %}
-                    <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 200px;">
+                    <div class="card-img-top bg-dark-placeholder d-flex align-items-center justify-content-center" style="height: 200px;">
                         <i class="fas fa-file-alt fa-3x text-muted"></i>
                     </div>
                     {% endif %}

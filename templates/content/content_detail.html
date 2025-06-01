@@ -50,7 +50,7 @@
                         <div class="mb-3">
                             <h6>标签：</h6>
                             {% for tag in content.tags.all %}
-                                <span class="badge bg-light text-dark me-1">
+                                <span class="badge bg-dark-theme me-1">
                                     <i class="fas fa-tag"></i> {{ tag.name }}
                                 </span>
                             {% endfor %}
@@ -87,10 +87,11 @@
                     
                     <!-- 操作按钮 -->
                     <div class="d-flex justify-content-center gap-2">
-                        <button class="btn btn-success like-btn {% if content.is_liked_by_user %}liked{% endif %}" data-content-id="{{ content.id }}">
-                            <i class="{% if content.is_liked_by_user %}fas{% else %}far{% endif %} fa-thumbs-up"></i> 
-                            <span class="like-count">{{ content.likes_count|default:0 }}</span>
-                            <span class="ms-1">点赞</span>
+                        <button class="like-btn {% if content.is_liked_by_user %}liked{% endif %}" data-content-id="{{ content.id }}">
+                            <svg class="heart-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                            <span class="like-count">{{ content.likes_count }}</span>
                         </button>
                         <button class="btn btn-danger" 
                                 data-content-id="{{ content.id }}"
@@ -202,7 +203,7 @@
                 </div>
                 <div class="card-body">
                     <div class="text-muted text-center py-3">
-                        <i class="fas fa-search fa-2x"></i>
+                        <span class="search-icon-medium">🔍</span>
                         <p class="mt-2 small">暂无相关内容</p>
                     </div>
                 </div>

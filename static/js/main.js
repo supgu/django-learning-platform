@@ -10,6 +10,8 @@ document.addEventListener('DOMContentLoaded', function() {
     initializeRating();
     initializeComments();
     initializeLikes();
+    initializeDropdownPortal();
+    initializeThemeToggle();
 });
 
 // 初始化工具提示
@@ -278,6 +280,15 @@ function toggleLike(contentId, isLike, button) {
     var originalLiked = button.classList.contains('liked');
     var originalCount = currentCount;
     
+    // 立即更新UI给用户反馈
+    if (isLike) {
+        button.classList.add('liked');
+        countSpan.textContent = currentCount + 1;
+    } else {
+        button.classList.remove('liked');
+        countSpan.textContent = currentCount - 1;
+    }
+    
     // 发送AJAX请求
     fetch('/content/' + contentId + '/toggle-like/', {
         method: 'POST',
@@ -309,12 +320,8 @@ function toggleLike(contentId, isLike, button) {
             // 更新按钮状态
             if (data.liked) {
                 button.classList.add('liked');
-                icon.classList.remove('far');
-                icon.classList.add('fas');
             } else {
                 button.classList.remove('liked');
-                icon.classList.remove('fas');
-                icon.classList.add('far');
             }
         } else if (data && !data.success) {
             console.error('点赞操作失败:', data.error || '未知错误');
@@ -334,12 +341,8 @@ function toggleLike(contentId, isLike, button) {
         // 恢复到原始状态
         if (originalLiked) {
             button.classList.add('liked');
-            icon.classList.remove('far');
-            icon.classList.add('fas');
         } else {
             button.classList.remove('liked');
-            icon.classList.remove('fas');
-            icon.classList.add('far');
         }
         countSpan.textContent = originalCount;
     }
@@ -450,7 +453,193 @@ function throttle(func, limit) {
     };
 }
 
-// 页面加载完成后初始化
-document.addEventListener('DOMContentLoaded', function() {
-    initializeLikes();
-});
+// 下拉菜单Portal机制 - 解决堆叠上下文问题
+function initializeDropdownPortal() {
+    const dropdowns = document.querySelectorAll('.dropdown');
+    
+    dropdowns.forEach(dropdown => {
+        const toggle = dropdown.querySelector('.dropdown-toggle');
+        const menu = dropdown.querySelector('.dropdown-menu');
+        
+        if (!toggle || !menu) return;
+        
+        // 点击切换显示
+        toggle.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            // 关闭其他下拉菜单
+            hideAllDropdownMenus();
+            
+            // 切换当前菜单
+            const portal = document.querySelector('.dropdown-portal');
+            if (portal && portal.classList.contains('show')) {
+                hideDropdownMenu();
+            } else {
+                showDropdownMenu(toggle, menu);
+            }
+        });
+    });
+    
+    // 点击外部关闭
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('.dropdown') && !e.target.closest('.dropdown-portal')) {
+            hideAllDropdownMenus();
+        }
+    });
+    
+    // ESC键关闭
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            hideAllDropdownMenus();
+        }
+    });
+}
+
+function showDropdownMenu(toggle, menu) {
+    // 创建Portal容器 - 强制挂载到body末尾
+    let portal = document.querySelector('.dropdown-portal');
+    if (!portal) {
+        portal = document.createElement('div');
+        portal.className = 'dropdown-portal';
+        portal.style.position = 'absolute';
+        portal.style.top = '0';
+        portal.style.left = '0';
+        portal.style.zIndex = '2147483647'; // 超高层级
+        portal.style.transform = 'none'; // 避免transform上下文干扰
+        portal.style.pointerEvents = 'none';
+        document.body.appendChild(portal); // 必须是body直接子元素
+    }
+    
+    // 克隆菜单到Portal
+    const clonedMenu = menu.cloneNode(true);
+    clonedMenu.style.position = 'absolute';
+    clonedMenu.style.display = 'block';
+    clonedMenu.style.zIndex = '2147483647';
+    clonedMenu.style.pointerEvents = 'auto';
+    portal.innerHTML = '';
+    portal.appendChild(clonedMenu);
+    
+    // 计算位置
+    const toggleRect = toggle.getBoundingClientRect();
+    const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+    const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
+    
+    clonedMenu.style.top = (toggleRect.bottom + scrollTop + 8) + 'px';
+    clonedMenu.style.left = (toggleRect.left + scrollLeft) + 'px';
+    
+    // 复制事件监听器
+    const originalItems = menu.querySelectorAll('.dropdown-item');
+    const clonedItems = clonedMenu.querySelectorAll('.dropdown-item');
+    
+    clonedItems.forEach((item, index) => {
+        const originalItem = originalItems[index];
+        if (originalItem) {
+            // 复制点击事件
+            item.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                // 如果是链接，直接跳转
+                if (originalItem.tagName === 'A' && originalItem.href) {
+                    window.location.href = originalItem.href;
+                    return;
+                }
+                
+                // 否则触发原始点击事件
+                originalItem.click();
+                hideDropdownMenu();
+            });
+        }
+    });
+    
+    // 触发显示动画
+    requestAnimationFrame(() => {
+        portal.classList.add('show');
+    });
+}
+
+function hideDropdownMenu() {
+    const portal = document.querySelector('.dropdown-portal');
+    if (portal) {
+        portal.classList.remove('show');
+        // 等待动画完成后移除
+        setTimeout(() => {
+            if (portal.parentNode) {
+                portal.remove();
+            }
+        }, 300);
+    }
+}
+
+function hideAllDropdownMenus() {
+    const portals = document.querySelectorAll('.dropdown-portal');
+    portals.forEach(portal => {
+        portal.classList.remove('show');
+        setTimeout(() => {
+            if (portal.parentNode) {
+                portal.remove();
+            }
+        }, 300);
+    });
+}
+
+// 主题切换功能
+function initializeThemeToggle() {
+    const themeToggle = document.getElementById('themeToggle');
+    const themeIcon = document.querySelector('.theme-icon');
+    
+    if (!themeToggle || !themeIcon) return;
+    
+    // 从localStorage获取保存的主题，默认为浅色主题
+    const savedTheme = localStorage.getItem('theme');
+    const currentTheme = savedTheme || 'light';
+    
+    // 应用初始主题
+    applyTheme(currentTheme);
+    
+    // 点击切换主题
+    themeToggle.addEventListener('click', function() {
+        const body = document.body;
+        const isDark = body.classList.contains('theme-dark');
+        const newTheme = isDark ? 'light' : 'dark';
+        
+        applyTheme(newTheme);
+        localStorage.setItem('theme', newTheme);
+        
+        // 添加点击动画
+        themeToggle.style.transform = 'scale(0.9)';
+        setTimeout(() => {
+            themeToggle.style.transform = '';
+        }, 150);
+    });
+    
+    // 监听系统主题变化（仅在用户未手动设置时生效）
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function(e) {
+        if (!localStorage.getItem('theme')) {
+            applyTheme('light'); // 始终默认浅色主题
+        }
+    });
+}
+
+function applyTheme(theme) {
+    const body = document.body;
+    const themeIcon = document.querySelector('.theme-icon');
+    
+    // 清除所有主题类
+    body.classList.remove('theme-light', 'theme-dark');
+    
+    if (theme === 'dark') {
+        body.classList.add('theme-dark');
+        if (themeIcon) themeIcon.textContent = '☀️'; // 深色模式显示太阳图标
+    } else {
+        // 浅色主题不需要添加类，使用默认的:root变量
+        if (themeIcon) themeIcon.textContent = '🌙'; // 浅色模式显示月亮图标
+    }
+    
+    // 添加过渡效果
+    body.style.transition = 'background-color 0.3s ease, color 0.3s ease';
+    setTimeout(() => {
+        body.style.transition = '';
+    }, 300);
+}
