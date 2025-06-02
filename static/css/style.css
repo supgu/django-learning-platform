@@ -247,16 +247,14 @@ body.theme-light .navbar-brand {
     display: none !important;
 }
 
-/* Portal中的下拉菜单样式 */
-.dropdown-portal .dropdown-menu {
+/* Portal中的下拉菜单样式 - 仅用于内容卡片 */
+.dropdown-portal.content-dropdown .dropdown-menu {
     display: block !important;
     z-index: 2147483647 !important;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    box-shadow: 
-        0 20px 40px rgba(0, 0, 0, 0.4),
-        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    border: 1px solid var(--border-color);
+    box-shadow: var(--shadow-lg);
     border-radius: 12px;
-    background: rgba(26, 26, 46, 0.98) !important;
+    background: var(--card-bg) !important;
     backdrop-filter: blur(20px) saturate(180%);
     min-width: 220px;
     padding: 10px 0;
@@ -272,8 +270,24 @@ body.theme-light .navbar-brand {
     font-size: 0.9rem;
 }
 
-/* Portal菜单显示状态 */
-.dropdown-portal.show .dropdown-menu {
+/* 浅色模式下的内容卡片下拉菜单 */
+body:not(.theme-dark) .dropdown-portal.content-dropdown .dropdown-menu {
+    border: 1px solid var(--border-color);
+    box-shadow: var(--shadow-lg);
+    background: var(--card-bg) !important;
+}
+
+/* 深色模式下的内容卡片下拉菜单 */
+body.theme-dark .dropdown-portal.content-dropdown .dropdown-menu {
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 
+        0 20px 40px rgba(0, 0, 0, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    background: rgba(26, 26, 46, 0.98) !important;
+}
+
+/* 内容卡片Portal菜单显示状态 */
+.dropdown-portal.content-dropdown.show .dropdown-menu {
     opacity: 1;
     transform: translateY(0) scale(1);
 }
@@ -289,14 +303,14 @@ body.theme-light .navbar-brand {
     }
 }
 
-/* 下拉菜单项样式 - 适用于Portal和原始菜单 */
+/* 下拉菜单项样式 - 适用于内容卡片Portal和原始菜单 */
 .dropdown-item,
-.dropdown-portal .dropdown-item {
-    padding: 8px 16px;
+.dropdown-portal.content-dropdown .dropdown-item {
+    padding: 6px 12px;
     transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-    border-radius: 10px;
-    margin: 4px 0;
-    color: var(--text-secondary);
+    border-radius: 6px;
+    margin: 2px 0;
+    color: var(--text-primary);
     font-weight: 500;
     font-size: 0.9rem;
     position: relative;
@@ -310,9 +324,21 @@ body.theme-light .navbar-brand {
     text-align: left;
 }
 
+/* 浅色模式下的下拉菜单项 */
+body:not(.theme-dark) .dropdown-item,
+body:not(.theme-dark) .dropdown-portal.content-dropdown .dropdown-item {
+    color: var(--text-primary);
+}
+
+/* 深色模式下的下拉菜单项 */
+body.theme-dark .dropdown-item,
+body.theme-dark .dropdown-portal.content-dropdown .dropdown-item {
+    color: var(--text-secondary);
+}
+
 /* 下拉菜单项伪元素和悬停效果 */
 .dropdown-item::before,
-.dropdown-portal .dropdown-item::before {
+.dropdown-portal.content-dropdown .dropdown-item::before {
     content: '';
     position: absolute;
     top: 0;
@@ -326,22 +352,106 @@ body.theme-light .navbar-brand {
 }
 
 .dropdown-item:hover,
-.dropdown-portal .dropdown-item:hover {
+.dropdown-portal.content-dropdown .dropdown-item:hover {
+    background: var(--hover-bg);
+    color: var(--primary-color);
+    transform: translateX(8px) scale(1.02);
+    box-shadow: 0 4px 12px rgba(49, 130, 206, 0.2);
+}
+
+/* 浅色模式下的下拉菜单项悬停效果 */
+body:not(.theme-dark) .dropdown-item:hover,
+body:not(.theme-dark) .dropdown-portal.content-dropdown .dropdown-item:hover {
+    background: var(--hover-bg);
+    color: var(--primary-color);
+    box-shadow: 0 4px 12px rgba(49, 130, 206, 0.15);
+}
+
+/* 深色模式下的下拉菜单项悬停效果 */
+body.theme-dark .dropdown-item:hover,
+body.theme-dark .dropdown-portal.content-dropdown .dropdown-item:hover {
     background: rgba(0, 212, 255, 0.1);
     color: var(--neon-blue);
-    transform: translateX(8px) scale(1.02);
     box-shadow: 0 4px 12px rgba(0, 212, 255, 0.2);
 }
 
 .dropdown-item:hover::before,
-.dropdown-portal .dropdown-item:hover::before {
+.dropdown-portal.content-dropdown .dropdown-item:hover::before {
     left: 100%;
 }
 
 .dropdown-divider {
-    margin: 12px 0;
-    border-color: rgba(255, 255, 255, 0.1);
+    margin: 6px 0;
+    border-color: var(--border-color);
     opacity: 0.3;
+}
+
+/* 浅色模式下的分隔线 */
+body:not(.theme-dark) .dropdown-divider {
+    border-color: var(--border-color);
+}
+
+/* 深色模式下的分隔线 */
+body.theme-dark .dropdown-divider {
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+/* 页脚样式 */
+.footer-custom {
+    background: var(--bg-accent);
+    border-top: 1px solid var(--border-color);
+}
+
+/* 浅色模式下的页脚 */
+body:not(.theme-dark) .footer-custom {
+    background: var(--bg-accent);
+    color: var(--text-primary);
+}
+
+body:not(.theme-dark) .footer-custom .text-light {
+    color: var(--text-primary) !important;
+}
+
+/* 深色模式下的页脚 */
+body.theme-dark .footer-custom {
+    background: var(--bg-accent);
+    color: var(--text-primary);
+}
+
+body.theme-dark .footer-custom .text-light {
+    color: var(--text-primary) !important;
+}
+
+/* 统计徽章样式 */
+.badge-stats {
+    background: var(--bg-accent);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+    font-weight: 500;
+    padding: 0.5em 0.75em;
+    border-radius: 0.5rem;
+    transition: all 0.3s ease;
+}
+
+/* 浅色模式下的统计徽章 */
+body:not(.theme-dark) .badge-stats {
+    background: var(--bg-accent);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+}
+
+/* 深色模式下的统计徽章 */
+body.theme-dark .badge-stats {
+    background: var(--bg-accent);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+}
+
+/* 统计徽章悬停效果 */
+.badge-stats:hover {
+    background: var(--hover-bg);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 /* 确保下拉菜单容器有正确的z-index */
@@ -349,6 +459,61 @@ body.theme-light .navbar-brand {
     position: relative;
     z-index: 1000;
     isolation: isolate;
+}
+
+/* 自定义下拉菜单按钮样式 */
+.dropdown-toggle-custom {
+    border: 1px solid var(--border-color) !important;
+    background: var(--card-bg) !important;
+    color: var(--text-secondary) !important;
+    transition: all 0.3s ease;
+    border-radius: 6px !important;
+    padding: 0.375rem 0.5rem !important;
+    min-width: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.dropdown-toggle-custom:hover {
+    background: var(--hover-bg) !important;
+    border-color: var(--primary-color) !important;
+    color: var(--primary-color) !important;
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-sm);
+}
+
+.dropdown-toggle-custom:focus {
+    box-shadow: var(--shadow-focus) !important;
+    border-color: var(--primary-color) !important;
+}
+
+.dropdown-toggle-custom[aria-expanded="true"] {
+    background: var(--primary-color) !important;
+    border-color: var(--primary-color) !important;
+    color: white !important;
+    box-shadow: var(--shadow-md);
+}
+
+/* 深色模式下的按钮样式 */
+body.theme-dark .dropdown-toggle-custom {
+    border-color: rgba(255, 255, 255, 0.2) !important;
+    background: rgba(26, 26, 46, 0.8) !important;
+    color: var(--text-secondary) !important;
+}
+
+body.theme-dark .dropdown-toggle-custom:hover {
+    background: rgba(255, 255, 255, 0.1) !important;
+    border-color: var(--neon-blue) !important;
+    color: var(--neon-blue) !important;
+    box-shadow: 0 0 10px rgba(0, 212, 255, 0.2);
+}
+
+body.theme-dark .dropdown-toggle-custom[aria-expanded="true"] {
+    background: var(--neon-blue) !important;
+    border-color: var(--neon-blue) !important;
+    color: #0a0a0f !important;
+    box-shadow: 0 0 15px rgba(0, 212, 255, 0.3);
 }
 
 /* Portal容器样式 */
@@ -363,7 +528,7 @@ body.theme-light .navbar-brand {
 
 /* 小尺寸下拉菜单样式 - 可复用版本 */
 .dropdown-small .dropdown-menu,
-.dropdown-portal.dropdown-small .dropdown-menu {
+.dropdown-portal.content-dropdown.dropdown-small .dropdown-menu {
     padding: 8px 0;
     font-size: 0.85rem;
     min-width: 180px;
@@ -371,7 +536,7 @@ body.theme-light .navbar-brand {
 }
 
 .dropdown-small .dropdown-item,
-.dropdown-portal.dropdown-small .dropdown-item {
+.dropdown-portal.content-dropdown.dropdown-small .dropdown-item {
     padding: 6px 12px;
     margin: 2px 0;
     border-radius: 8px;
@@ -379,7 +544,7 @@ body.theme-light .navbar-brand {
 }
 
 .dropdown-small .dropdown-item:hover,
-.dropdown-portal.dropdown-small .dropdown-item:hover {
+.dropdown-portal.content-dropdown.dropdown-small .dropdown-item:hover {
     transform: translateX(4px) scale(1.01);
 }
 

@@ -501,7 +501,7 @@ function showDropdownMenu(toggle, menu) {
     let portal = document.querySelector('.dropdown-portal');
     if (!portal) {
         portal = document.createElement('div');
-        portal.className = 'dropdown-portal';
+        portal.className = 'dropdown-portal content-dropdown';
         portal.style.position = 'absolute';
         portal.style.top = '0';
         portal.style.left = '0';
@@ -525,7 +525,7 @@ function showDropdownMenu(toggle, menu) {
     const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
     const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
     
-    clonedMenu.style.top = (toggleRect.bottom + scrollTop + 8) + 'px';
+    clonedMenu.style.top = (toggleRect.bottom + scrollTop + 4) + 'px';
     clonedMenu.style.left = (toggleRect.left + scrollLeft) + 'px';
     
     // 复制事件监听器

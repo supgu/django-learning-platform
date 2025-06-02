@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}删除内容 - 学习平台{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-danger text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        确认删除内容
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-warning">
+                        <i class="fas fa-warning me-2"></i>
+                        <strong>警告：</strong>此操作不可撤销！删除后将无法恢复。
+                    </div>
+                    
+                    <h5>您确定要删除以下内容吗？</h5>
+                    
+                    <div class="card mt-3">
+                        <div class="card-body">
+                            <h6 class="card-title">{{ object.title }}</h6>
+                            <p class="card-text text-muted">
+                                {{ object.content|truncatechars:200 }}
+                            </p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <small class="text-muted">
+                                    创建时间：{{ object.created_at|date:"Y-m-d H:i" }}
+                                </small>
+                                <div>
+                                    <span class="badge bg-secondary me-1">
+                                        <i class="fas fa-eye"></i> {{ object.views_count }}
+                                    </span>
+                                    <span class="badge bg-secondary me-1">
+                                        <i class="fas fa-thumbs-up"></i> {{ object.likes_count }}
+                                    </span>
+                                    <span class="badge bg-secondary">
+                                        <i class="fas fa-heart"></i> {{ object.favorites_count }}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <form method="post" class="mt-4">
+                        {% csrf_token %}
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'core:my_content' %}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left me-1"></i>
+                                取消
+                            </a>
+                            <button type="submit" class="btn btn-danger">
+                                <i class="fas fa-trash me-1"></i>
+                                确认删除
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

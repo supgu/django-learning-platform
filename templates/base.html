@@ -46,8 +46,15 @@
                     </li>
                     {% if user.is_authenticated %}
                     <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            {{ user.username }}
+                        <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            {% if user.userprofile.avatar %}
+                                <img src="{{ user.userprofile.avatar.url }}" alt="头像" class="rounded-circle me-2" style="width: 24px; height: 24px; object-fit: cover;">
+                            {% else %}
+                                <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 24px; height: 24px; font-size: 12px;">
+                                    {{ user.username|first|upper }}
+                                </div>
+                            {% endif %}
+                            {{ user.get_full_name|default:user.username }}
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end">
                             <li><a class="dropdown-item" href="{% url 'accounts:profile' %}">个人资料</a></li>
@@ -87,9 +94,9 @@
     </main>
 
     <!-- 页脚 -->
-    <footer class="bg-dark-theme mt-5 py-4">
+    <footer class="footer-custom mt-5 py-4">
         <div class="container text-center">
-            <p class="mb-0">&copy; 2025年 学习平台. All rights reserved.</p>
+            <p class="mb-0 text-light">&copy; 2025年 学习平台. All rights reserved.</p>
         </div>
     </footer>
 

@@ -18,14 +18,16 @@ from core.utils import record_user_activity
 class CustomUserCreationForm(UserCreationForm):
     """自定义用户注册表单"""
     email = forms.EmailField(required=True, label='邮箱')
-    first_name = forms.CharField(max_length=30, required=False, label='姓名')
+    first_name = forms.CharField(max_length=30, required=False, label='姓')
+    last_name = forms.CharField(max_length=30, required=False, label='名')
     
     class Meta:
         model = User
-        fields = ('username', 'first_name', 'email', 'password1', 'password2')
+        fields = ('username', 'first_name', 'last_name', 'email', 'password1', 'password2')
         labels = {
             'username': '用户名',
-            'first_name': '姓名',
+            'first_name': '姓',
+            'last_name': '名',
         }
     
     def __init__(self, *args, **kwargs):
@@ -43,6 +45,7 @@ class CustomUserCreationForm(UserCreationForm):
         user = super().save(commit=False)
         user.email = self.cleaned_data['email']
         user.first_name = self.cleaned_data['first_name']
+        user.last_name = self.cleaned_data['last_name']
         if commit:
             user.save()
             # 创建用户资料
